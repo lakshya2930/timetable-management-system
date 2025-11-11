@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Timetable</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body { 
+      background: linear-gradient(135deg, #dce8ff, #f5f7fa);
+      min-height: 100vh;
+    }
+    .container { 
+      max-width: 550px; 
+      margin-top: 60px; 
+    }
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: none;
+      background-color: #fff;
+    }
+    .card-header {
+      background-color: #0d6efd;
+      color: white;
+      font-weight: bold;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+      padding: 1rem;
+      letter-spacing: 0.5px;
+    }
+    .form-label {
+      font-weight: 500;
+      color: #495057;
+      margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      padding: 0.625rem;
+      transition: all 0.2s ease-in-out;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .btn-primary {
+      background-color: #0d6efd;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      border: none;
+    }
+    .btn-secondary:hover {
+      background-color: #5c636a;
+    }
+    .card-body {
+      padding: 2rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">✏️ Edit Timetable Entry</div>
+      <div class="card-body">
+        <form method="post">
+
+          <!-- Course Dropdown -->
+          <div class="mb-3">
+            <label class="form-label">Course</label>
+            <select class="form-select" name="course_id" id="courseSelect" required>
+              {% for course in courses %}
+              <option value="{{ course.course_id }}" {% if course.course_id == timetable.course_id %}selected{% endif %}>
+                {{ course.course_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Faculty Dropdown -->
+          <div class="mb-3">
+            <label class="form-label">Faculty</label>
+            <select class="form-select" name="faculty_id" id="facultySelect" required>
+              {% for faculty in faculties %}
+              <option value="{{ faculty.faculty_id }}">{{ faculty.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Day -->
+          <div class="mb-3">
+            <label class="form-label">Day</label>
+            <input type="text" name="day" class="form-control" value="{{ timetable.day }}" required>
+          </div>
+
+          <!-- Start Time -->
+          <div class="mb-3">
+            <label class="form-label">Start Time</label>
+            <input type="time" name="start_time" class="form-control" value="{{ timetable.start_time }}" required>
+          </div>
+
+          <!-- End Time -->
+          <div class="mb-3">
+            <label class="form-label">End Time</label>
+            <input type="time" name="end_time" class="form-control" value="{{ timetable.end_time }}" required>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="/view_timetable" class="btn btn-secondary">🔙 Back</a>
+            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Fixed Course-Faculty Mapping -->
+  <script type="text/javascript">
+    const courseFacultyMap = JSON.parse('{{ courses|tojson|safe }}');
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const courseSelect = document.getElementById('courseSelect');
+      const facultySelect = document.getElementById('facultySelect');
+
+      function updateFacultySelection() {
+        const selectedCourse = courseSelect.value;
+        const matched = courseFacultyMap.find(c => c.course_id == selectedCourse);
+        if (matched && matched.faculty_id) {
+          facultySelect.value = matched.faculty_id;
+        }
+      }
+
+      courseSelect.addEventListener('change', updateFacultySelection);
+      updateFacultySelection(); // auto run initially
+    });
+  </script>
+
+  <!-- Validation -->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('form');
+      const startTimeInput = document.querySelector('input[name="start_time"]');
+      const endTimeInput = document.querySelector('input[name="end_time"]');
+      const dayInput = document.querySelector('input[name="day"]');
+
+      form.addEventListener('submit', function(e) {
+        const start = startTimeInput.value;
+        const end = endTimeInput.value;
+        const day = dayInput.value.trim().toLowerCase();
+
+        const validDays = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+        if (!validDays.includes(day)) {
+          alert('Please enter a valid day (Monday–Sunday)');
+          e.preventDefault();
+        } else if (start && end && start >= end) {
+          alert('End time must be after start time');
+          e.preventDefault();
+        }
+      });
+
+      dayInput.addEventListener('blur', function() {
+        this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();
+      });
+    });
+  </script>
+</body>
+</html>

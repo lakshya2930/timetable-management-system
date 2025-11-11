@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Time Table Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --sidebar-bg: linear-gradient(160deg, #4e73df 0%, #1e3c72 100%);
+      --text-color: #333;
+      --card-bg: #fff;
+      --page-bg: linear-gradient(135deg, #e0e7ff, #f9f9ff);
+      --topbar-bg: linear-gradient(90deg, #007bff, #00c6ff); /* 🌈 Light Mode Topbar Color Updated */
+    }
+
+    [data-theme="dark"] {
+      --sidebar-bg: linear-gradient(160deg, #0f2027, #203a43, #2c5364);
+      --text-color: #f1f1f1;
+      --card-bg: #1e1e2e;
+      --page-bg: linear-gradient(135deg, #1a1a2e, #16213e);
+      --topbar-bg: linear-gradient(90deg, #007bff, #6610f2); /* 🌈 Dark Mode Gradient */
+    }
+
+    body {
+      background: var(--page-bg);
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-color);
+      transition: all 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background: var(--sidebar-bg);
+      color: white;
+      padding: 25px 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.4s ease;
+      box-shadow: 3px 0 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.collapsed { width: 80px; }
+    .sidebar h4 { text-align: center; font-weight: 700; margin-bottom: 30px; font-size: 20px; }
+
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      transition: 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(5px);
+    }
+
+    .sidebar.collapsed a span, .sidebar.collapsed h4 { display: none; }
+
+    /* ---------- Topbar ---------- */
+    .topbar {
+      margin-left: 240px;
+      background: var(--topbar-bg);
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      transition: all 0.4s ease;
+      color: white;
+    }
+
+    .sidebar.collapsed + .topbar { margin-left: 80px; }
+
+    .topbar h5 { font-weight: 700; }
+    .toggle-btn { font-size: 22px; cursor: pointer; color: #fff; transition: 0.3s; }
+    .toggle-btn:hover { transform: scale(1.2); }
+
+    /* ---------- Main Content ---------- */
+    .main-content {
+      margin-left: 240px;
+      padding: 40px;
+      transition: margin-left 0.4s ease;
+    }
+
+    .sidebar.collapsed ~ .main-content { margin-left: 80px; }
+
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      justify-items: center;
+      align-items: center;
+      gap: 40px;
+      margin-top: 60px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ---------- Cards ---------- */
+    .card-box {
+      width: 100%;
+      max-width: 350px;
+      border-radius: 15px;
+      padding: 35px 25px;
+      text-align: center;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.35s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .card-box:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.2); }
+    .card-box i { font-size: 50px; margin-bottom: 15px; }
+
+    .faculty-card { background: linear-gradient(135deg, #007bff, #00c6ff); }
+    .course-card { background: linear-gradient(135deg, #6f42c1, #a46cf5); }
+    .timetable-card { background: linear-gradient(135deg, #fd7e14, #ffb347); }
+    .report-card { background: linear-gradient(135deg, #198754, #56ab2f); }
+
+    /* ---------- Dark Mode Button ---------- */
+    .dark-mode-toggle {
+      cursor: pointer;
+      background: #0d6efd;
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+
+    .dark-mode-toggle:hover { background: #0b5ed7; transform: scale(1.1); }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h4>📅 TimeTable</h4>
+      <a href="/" class="active"><i class="bi bi-house-door me-2"></i><span>Dashboard</span></a>
+      <a href="/add_faculty"><i class="bi bi-person-plus me-2"></i><span>Add Faculty</span></a>
+      <a href="/add_course"><i class="bi bi-journal-plus me-2"></i><span>Add Course</span></a>
+      <a href="/add_timetable"><i class="bi bi-calendar-plus me-2"></i><span>Add Timetable</span></a>
+      <a href="/view_database"><i class="bi bi-database me-2"></i><span>View Database</span></a>
+      <a href="/view_timetable"><i class="bi bi-calendar-week me-2"></i><span>View Timetable</span></a>
+    </div>
+    <a href="/logout" class="text-center btn btn-outline-light mt-auto">
+      <i class="bi bi-box-arrow-right me-2"></i><span>Logout</span>
+    </a>
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="d-flex align-items-center gap-3">
+      <i class="bi bi-list toggle-btn" id="toggleSidebar"></i>
+      <h5 class="m-0">Welcome, Admin 👋</h5>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="dark-mode-toggle" id="themeToggle">
+        <i class="bi bi-moon-fill"></i>
+      </button>
+      <i class="bi bi-person-circle fs-4"></i>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content text-center">
+    <h2 class="fw-bold text-primary">Dashboard Overview</h2>
+    <p class="text-muted">Quick summary of your timetable system.</p>
+
+    <div class="dashboard-cards">
+      <a href="/faculty_list" class="card-box faculty-card">
+        <i class="bi bi-person-badge"></i>
+        <h5>Total Faculty</h5>
+        <p>{{ total_faculty }} Registered</p>
+      </a>
+
+      <a href="/course_list" class="card-box course-card">
+        <i class="bi bi-book"></i>
+        <h5>Total Courses</h5>
+        <p>{{ total_courses }} Available</p>
+      </a>
+
+      <a href="/timetable_list" class="card-box timetable-card">
+        <i class="bi bi-calendar-check"></i>
+        <h5>Total Timetables</h5>
+        <p>{{ total_timetables }} Scheduled</p>
+      </a>
+
+      <a href="/view_database" class="card-box report-card">
+        <i class="bi bi-graph-up-arrow"></i>
+        <h5>Reports & Exports</h5>
+        <p>View data insights & PDF reports</p>
+      </a>
+    </div>
+  </div>
+
+  <!-- JS for Sidebar + Dark Mode -->
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebar = document.getElementById('toggleSidebar');
+    const themeToggle = document.getElementById('themeToggle');
+
+    toggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Dark Mode Toggle
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    themeToggle.innerHTML = currentTheme === 'dark'
+      ? '<i class="bi bi-sun-fill"></i>'
+      : '<i class="bi bi-moon-fill"></i>';
+
+    themeToggle.addEventListener('click', () => {
+      const theme = document.documentElement.getAttribute('data-theme');
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      themeToggle.innerHTML = newTheme === 'dark'
+        ? '<i class="bi bi-sun-fill"></i>'
+        : '<i class="bi bi-moon-fill"></i>';
+    });
+  </script>
+</body>
+</html>
